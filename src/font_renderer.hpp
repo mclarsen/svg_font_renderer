@@ -3,12 +3,9 @@
 
 #include <string>
 #include <vector>
-struct Image
-{
-  unsigned char *m_buffer;
-  int m_width;
-  int m_height;
-};
+
+#include <image.hpp>
+
 
 struct FontData;
 
@@ -17,7 +14,7 @@ class FontRenderer
 public:  
   FontRenderer();
   ~FontRenderer();
-  Image render_text(const std::string &text, const int size);
+  Image* render_text(const std::string &text, const int size);
 protected:
   void create_svg_xml(std::string &xml, 
                       const std::string &text,
@@ -31,9 +28,7 @@ protected:
   void add_svg_header(std::stringstream &ss, 
                       const std::string &text, 
                       std::vector<int> &offsets, 
-                      const float scale,
-                      const int width,
-                      const int height);
+                      const float scale);
   FontData *m_font_data;
 };
 #endif

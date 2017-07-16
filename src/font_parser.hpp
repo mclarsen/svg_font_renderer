@@ -7,7 +7,7 @@
 #include <sstream>
 
 #define NANOSVG_IMPLEMENTATION
-#include <third_party_builtin/nanosvg.h>
+#include <third_party_builtin/nano_svg/nanosvg.h>
 #include <iostream>
 
 struct FontAttributes
