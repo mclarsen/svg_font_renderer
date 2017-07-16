@@ -12,7 +12,8 @@
 
 struct FontAttributes
 {
-  //https://www.w3.org/TR/SVG11/fonts.html#FontFaceElement
+  // https://www.w3.org/TR/SVG11/fonts.html#FontFaceElement
+  // https://www.w3.org/TR/2008/REC-CSS2-20080411/fonts.html#emsq
   std::string m_font_family;
   std::string m_font_weight;
   std::string m_font_stretch;
@@ -26,6 +27,13 @@ struct FontAttributes
   std::string m_underline_thickness;
   std::string m_underline_position;
   std::string m_unicode_range;
+  FontAttributes()
+    : m_font_weight("all"),
+      m_font_stretch("normal"),
+      m_units_per_em("1000"),
+      m_panose_1("0 0 0 0 0 0 0 0 0 0"),
+      m_x_height("U+0-10FFFF")
+  {}
 };
 
 struct CharacterData
@@ -49,6 +57,11 @@ struct FontData
   std::map<std::string, std::string>   m_name_to_unicode;
   std::map<std::string, KerningAttr >  m_kerns;
   FontAttributes m_atts;
+
+  bool has_char(const std::string &chr)
+  {
+    return m_char_data.find(chr) != m_char_data.end(); 
+  }
 };
 
 std::vector<std::string> 
@@ -136,7 +149,7 @@ static void font__parseGlyph(NSVGparser* p, const char** attr)
   {
     font->m_char_data[character.m_unicode] = character;
     font->m_name_to_unicode[character.m_name] = character.m_unicode;
-    std::cout<<"adding char "<<character.m_name<<"\n";
+    //std::cout<<"adding char "<<character.m_name<<"\n";
   } 
 }
 
@@ -170,7 +183,7 @@ static void font__parseKern(NSVGparser* p, const char** attr)
   {
     font->m_kerns[kern.m_first] = kern;
 
-    std::cout<<"adding kern "<<kern.m_first<<"\n";
+    //std::cout<<"adding kern "<<kern.m_first<<"\n";
   } 
 }
 
@@ -252,7 +265,7 @@ static void font__startElement(void* ud, const char* el, const char** attr)
 		return;
 	}*/
   FontData *font = (FontData*) p->font_data;
-  std::cout<<"element "<<el<<"\n";
+  //std::cout<<"element "<<el<<"\n";
 	if (strcmp(el, "g") == 0) 
   {
 		nsvg__pushAttr(p);
@@ -340,7 +353,7 @@ FontData* fontParse(char* input)
 	nsvg__deleteParser(p);
 
 	//return ret;
-  return NULL;
+  return font;
 }
 
 FontData* fontParseFromFile(const char* filename)
