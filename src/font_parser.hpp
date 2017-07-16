@@ -190,7 +190,6 @@ static void font__parseKern(NSVGparser* p, const char** attr)
 static void font__parseFontFace(NSVGparser* p, const char** attr)
 {
   FontData *font = (FontData*) p->font_data;
-  int att_count = 0;
   FontAttributes &atts = font->m_atts;
 	for (int i = 0; attr[i]; i += 2) 
   {
@@ -253,19 +252,7 @@ static void font__startElement(void* ud, const char* el, const char** attr)
 {
 	NSVGparser* p = (NSVGparser*)ud;
 
-	/*if (p->defsFlag) {
-		// Skip everything but gradients in defs
-		if (strcmp(el, "linearGradient") == 0) {
-			nsvg__parseGradient(p, attr, NSVG_PAINT_LINEAR_GRADIENT);
-		} else if (strcmp(el, "radialGradient") == 0) {
-			nsvg__parseGradient(p, attr, NSVG_PAINT_RADIAL_GRADIENT);
-		} else if (strcmp(el, "stop") == 0) {
-			nsvg__parseGradientStop(p, attr);
-		}
-		return;
-	}*/
-  FontData *font = (FontData*) p->font_data;
-  //std::cout<<"element "<<el<<"\n";
+	//std::cout<<"element "<<el<<"\n";
 	if (strcmp(el, "g") == 0) 
   {
 		nsvg__pushAttr(p);
@@ -332,7 +319,6 @@ FontData* fontParse(char* input)
 
 {
 	NSVGparser* p;
-	NSVGimage* ret = 0;
 
 	p = nsvg__createParser();
 	if (p == NULL) {
@@ -347,12 +333,8 @@ FontData* fontParse(char* input)
                  p);
 
 
-	//ret = p->image;
-	//p->image = NULL;
-
 	nsvg__deleteParser(p);
 
-	//return ret;
   return font;
 }
 

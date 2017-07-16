@@ -18,7 +18,6 @@ public:
   FontRenderer();
   ~FontRenderer();
   Image render_text(const std::string &text, const int size);
-  void test();
 protected:
   void create_svg_xml(std::string &xml, 
                       const std::string &text,

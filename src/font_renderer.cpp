@@ -1,22 +1,35 @@
 #include <font_renderer.hpp>
 #include <font_parser.hpp>
+
+#include <limits>
 #include <sstream>
+
 FontRenderer::FontRenderer()
 {
   m_font_data = fontParseFromFile("/Users/larsen30/research/svg_stuff/svg_font_renderer/src/fonts/Crimson-Roman.svg");
-  std::cout<<"Hello\n";
-  std::string xml;
-  //create_svg_xml(xml, "test", 100);
-  render_text("test", 100);
 }
 
 FontRenderer::~FontRenderer()
 {
   delete m_font_data;
 }
-void
-FontRenderer::test()
+
+void find_total_bbox(float bbox[4], NSVGimage *image)
 {
+  bbox[0] = std::numeric_limits<float>::max();
+  bbox[1] = std::numeric_limits<float>::max();
+  bbox[2] = std::numeric_limits<float>::lowest();
+  bbox[3] = std::numeric_limits<float>::lowest();
+    
+  NSVGshape *shape_p = image->shapes;
+  while(shape_p != NULL)
+  {
+    bbox[0] = std::min(bbox[0], shape_p->bounds[0]);
+    bbox[1] = std::min(bbox[1], shape_p->bounds[1]);
+    bbox[2] = std::max(bbox[2], shape_p->bounds[2]);
+    bbox[3] = std::max(bbox[3], shape_p->bounds[3]);
+  }
+  std::cout<<"BBOX "<<bbox[0]<<" "<<bbox[1]<<" "<<bbox[2]<<" "<<bbox[3]<<"\n";
 }
 
 Image 
@@ -24,6 +37,13 @@ FontRenderer::render_text(const std::string &text, const int size)
 {
   std::string xml;
   create_svg_xml(xml, text, size);
+  float dpi = 96; 
+  const char *units = "px";
+  char *input = const_cast<char*>(xml.c_str());
+  NSVGimage *nsvg_image = nsvgParse(input, units, dpi);
+  float bbox[4];  
+  find_total_bbox(bbox, nsvg_image);
+  std::cout<<"**********\n";
   Image image;
   return image;
 }
