@@ -1,0 +1,4 @@
+#ifndef FONT_RENDERER_CONFIG_H
+#define FONT_RENDERER_CONFIG_H
+const char *font_dir_path = "@CMAKE_BINARY_DIR@/fonts/";
+#endif
