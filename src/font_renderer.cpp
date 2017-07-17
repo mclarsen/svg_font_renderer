@@ -1,4 +1,5 @@
 #include <font_renderer.hpp>
+#include <font_renderer_config.h>
 #include <font_parser.hpp>
 
 #include <limits>
@@ -7,9 +8,12 @@
 #define NANOSVGRAST_IMPLEMENTATION
 #include <third_party_builtin/nano_svg/nanosvgrast.h>
 
-FontRenderer::FontRenderer()
+FontRenderer::FontRenderer(bool use_kerning)
+  : m_use_kerning(use_kerning)
 {
-  m_font_data = fontParseFromFile("/Users/larsen30/research/svg_stuff/svg_font_renderer/src/fonts/Crimson-Roman.svg");
+  std::stringstream ss;
+  ss<<font_dir_path<<"Crimson-Roman.svg";
+  m_font_data = fontParseFromFile(ss.str().c_str(), use_kerning);
 }
 
 FontRenderer::~FontRenderer()
@@ -133,17 +137,19 @@ FontRenderer::create_svg_xml(std::string &xml,
   int num_chars = text.length();
   std::vector<int> offsets(num_chars);
   offsets[0] = 0;
-  float tot_width = 0; 
+
   for(int i = 1; i < num_chars; ++i)
   {
     std::stringstream ss;
     ss<<text[i - 1];
     offsets[i] = offsets[i -1] + m_font_data->m_char_data[ss.str()].m_advance;
-    if(i == num_chars - 1)
+
+    if(m_use_kerning)
     {
-      ss.str("");
-      ss<<text[i];
-      tot_width  = offsets[i] + m_font_data->m_char_data[ss.str()].m_advance;
+      std::stringstream key;
+      key<<text[i-1]<<text[i];
+      int neg_offset = m_font_data->get_kerning_offset(key.str()); 
+      offsets[i] -= neg_offset;
     }
   }
 

@@ -12,7 +12,7 @@ struct FontData;
 class FontRenderer 
 {
 public:  
-  FontRenderer();
+  FontRenderer(bool use_kerning);
   ~FontRenderer();
   Image* render_text(const std::string &text, const int size);
 protected:
@@ -30,5 +30,7 @@ protected:
                       std::vector<int> &offsets, 
                       const float scale);
   FontData *m_font_data;
+  bool m_use_kerning; 
+  FontRenderer();
 };
 #endif

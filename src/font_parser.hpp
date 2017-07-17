@@ -32,7 +32,7 @@ struct FontAttributes
       m_font_stretch("normal"),
       m_units_per_em("1000"),
       m_panose_1("0 0 0 0 0 0 0 0 0 0"),
-      m_x_height("U+0-10FFFF")
+      m_unicode_range("U+0-10FFFF")
   {}
 };
 
@@ -55,12 +55,27 @@ struct FontData
 {
   std::map<std::string, CharacterData> m_char_data;
   std::map<std::string, std::string>   m_name_to_unicode;
-  std::map<std::string, KerningAttr >  m_kerns;
+  std::vector< KerningAttr >  m_kerns;
+  std::map<std::string, int>  m_kerning_map;
   FontAttributes m_atts;
 
-  bool has_char(const std::string &chr)
+  inline bool has_char(const std::string &chr)
   {
     return m_char_data.find(chr) != m_char_data.end(); 
+  }
+
+  inline bool has_unicode(const std::string &chr)
+  {
+    return m_name_to_unicode.find(chr) != m_name_to_unicode.end(); 
+  }
+  
+  inline int get_kerning_offset(const std::string &key)
+  {
+    if(m_kerning_map.find(key) != m_kerning_map.end())
+    {
+      return m_kerning_map[key];
+    }
+    else return 0;
   }
 };
 
@@ -102,6 +117,7 @@ trim(const std::string& str)
 void 
 strip_sc(std::string &name)
 {
+  std::string orig = name;
   std::vector<std::string> tokens = split(name, '.');
   if(tokens.size() > 1)
   {
@@ -109,7 +125,7 @@ strip_sc(std::string &name)
   }
   else 
   {
-    std::cerr<<"Warning: no .sc suffix\n";
+    std::cerr<<"Warning: no .sc suffix "<<orig<<"\n";
   }
 }
 
@@ -181,9 +197,7 @@ static void font__parseKern(NSVGparser* p, const char** attr)
   //
   if(att_count == 3)
   {
-    font->m_kerns[kern.m_first] = kern;
-
-    //std::cout<<"adding kern "<<kern.m_first<<"\n";
+    font->m_kerns.push_back(kern);
   } 
 }
 
@@ -315,8 +329,43 @@ int font__parseXML(char* input,
 
 	return 1;
 }
-FontData* fontParse(char* input)
 
+void build_kerning_map(FontData *font)
+{
+  std::vector<KerningAttr> &kerns = font->m_kerns;
+  std::map<std::string,int> &kern_map = font->m_kerning_map;
+  const int count = kerns.size();
+
+  for(int i = 0; i < count; ++i)
+  {
+    const KerningAttr &kern = kerns[i];   
+    std::vector<std::string> left = split(kern.m_first, ',');
+    std::vector<std::string> right = split(kern.m_second, ',');
+    const int left_size = left.size();
+    const int right_size = right.size();
+    
+    int neg_offset = kern.m_offset;
+    for(int x = 0; x < left_size; ++x)
+    {
+      if(!font->has_unicode(left[x]))
+      {
+        continue;
+      }
+      std::string l = font->m_name_to_unicode[left[x]]; 
+      for(int y = 0; y < right_size; ++y)
+      {
+        if(!font->has_unicode(right[y]))
+        {
+          continue;
+        }
+        std::string key = l + font->m_name_to_unicode[right[y]]; 
+        kern_map[key] = neg_offset;
+      }
+    }
+  }
+}
+
+FontData* fontParse(char* input, bool use_kerning)
 {
 	NSVGparser* p;
 
@@ -332,13 +381,17 @@ FontData* fontParse(char* input)
                  nsvg__content, 
                  p);
 
+  if(use_kerning)
+  {
+    build_kerning_map(font);
+  }
 
 	nsvg__deleteParser(p);
 
   return font;
 }
 
-FontData* fontParseFromFile(const char* filename)
+FontData* fontParseFromFile(const char* filename, bool use_kerning)
 {
 	FILE* fp = NULL;
 	size_t size;
@@ -369,7 +422,7 @@ FontData* fontParseFromFile(const char* filename)
     }
     data[size] = '\0';	// Must be null terminated.
     fclose(fp);
-    font = fontParse(data);
+    font = fontParse(data, use_kerning);
     free(data);
     break;
   }

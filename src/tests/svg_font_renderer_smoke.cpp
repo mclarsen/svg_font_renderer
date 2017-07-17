@@ -3,5 +3,5 @@
 
 TEST(svg_font_renderer_smoke, basic_test)
 {
-  FontRenderer renderer;
+  FontRenderer renderer(false);
 }

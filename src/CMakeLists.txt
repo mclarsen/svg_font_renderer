@@ -4,9 +4,12 @@ project(font_renderer VERSION "0.0.0")
 
 include(blt/SetupBLT.cmake)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+configure_file(font_renderer_config.h.in 
+               ${CMAKE_BINARY_DIR}/config/font_renderer_config.h
+               @ONLY)
 
-add_subdirectory(tests)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_BINARY_DIR}/config)
 
 set(sources font_renderer.cpp
             image.cpp
@@ -16,8 +19,13 @@ set(headers font_renderer.hpp
             image.hpp
             third_party_builtin/lodepng/lodepng.h
    )
+
 blt_add_library(
   NAME font_renderer SHARED
   SOURCES ${sources} 
   HEADERS ${headers}
 ) 
+
+add_subdirectory(tests)
+
+file(COPY fonts DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
